@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fa">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>بازی سه کلمه — قرمز، ابی، زد</title>
+  <style>
+    :root{--size:160px}
+    body{font-family:Tahoma,Arial,Helvetica,sans-serif;background:#f6f8fb;color:#111;direction:rtl;padding:18px}
+    h1{font-size:24px;margin-bottom:8px}
+    .card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 6px 18px rgba(20,40,60,0.08);max-width:720px;margin:12px auto}
+    .controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+    .control{display:flex;align-items:center;gap:8px}
+    label{font-size:14px}
+    .play-area{display:flex;gap:20px;align-items:center;justify-content:center;margin-top:12px}
+    .color-box{width:var(--size);height:var(--size);border-radius:12px;box-shadow:inset 0 -12px 18px rgba(0,0,0,0.06)}
+    .words{display:flex;flex-direction:column;gap:10px}
+    button.word{padding:12px 18px;border-radius:10px;border:2px solid #eee;background:#fff;font-size:18px;cursor:pointer;min-width:140px}
+    .info{display:flex;gap:14px;align-items:center;margin-top:12px}
+    .small{font-size:13px;color:#666}
+    .score{font-weight:700}
+    .footer{margin-top:14px;font-size:13px;color:#666}
+    .muted{opacity:0.75}
+    .big{font-size:20px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>بازی تطبیق رنگ — سه کلمه: <span class="muted">قرمز، ابی، زد</span></h1>
+    <div class="controls">
+      <div class="control">
+        <label>قرمز:</label>
+        <input id="color-q" type="color" value="#ff3b30" />
+      </div>
+      <div class="control">
+        <label>ابی:</label>
+        <input id="color-a" type="color" value="#007aff" />
+      </div>
+      <div class="control">
+        <label>زد:</label>
+        <input id="color-z" type="color" value="#ffd60a" />
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button id="startBtn">شروع بازی</button>
+        <button id="nextBtn" disabled>بعدی</button>
+      </div>
+    </div>
+
+    <div class="play-area">
+      <div class="color-box" id="targetBox" title="رنگ هدف"></div>
+      <div class="words">
+        <button class="word" data-key="q" id="btn-q">قرمز</button>
+        <button class="word" data-key="a" id="btn-a">ابی</button>
+        <button class="word" data-key="z" id="btn-z">زد</button>
+      </div>
+    </div>
+
+    <div class="info">
+      <div class="small">امتیاز: <span class="score" id="score">0</span></div>
+      <div class="small">دور: <span id="round">0</span></div>
+      <div class="small">وضعیت: <span id="status">آماده</span></div>
+    </div>
+
+    <p class="footer">راهنما: با دکمه‌های بالا رنگ هر کلمه را تغییر دهید (اگر می‌خواهید). سپس <b>شروع بازی</b> را بزنید تا یک رنگ هدف نمایش داده شود — روی کلمه‌ای که به نظر شما با آن رنگ تطبیق دارد کلیک کنید. دکمه <b>بعدی</b> برای رفتن به رنگ بعدی است.</p>
+  </div>
+
+  <script>
+    const mappingInputs = { q: document.getElementById('color-q'), a: document.getElementById('color-a'), z: document.getElementById('color-z') };
+    const btns = { q: document.getElementById('btn-q'), a: document.getElementById('btn-a'), z: document.getElementById('btn-z') };
+    const targetBox = document.getElementById('targetBox');
+    const startBtn = document.getElementById('startBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const scoreEl = document.getElementById('score');
+    const roundEl = document.getElementById('round');
+    const statusEl = document.getElementById('status');
+
+    let score = 0, round = 0, currentKey = null, playing = false;
+
+    function updateButtonStyles(){
+      for(const k of Object.keys(btns)){
+        btns[k].style.borderColor = mappingInputs[k].value;
+      }
+    }
+    for(const k of Object.keys(mappingInputs)){
+      mappingInputs[k].addEventListener('input', ()=>{
+        updateButtonStyles();
+      });
+    }
+    updateButtonStyles();
+
+    function pickRandomKey(){
+      const keys = Object.keys(btns);
+      return keys[Math.floor(Math.random()*keys.length)];
+    }
+
+    function hexEqual(h1,h2){ return h1.toLowerCase()===h2.toLowerCase(); }
+
+    function nextRound(){
+      if(!playing) return;
+      round++;
+      roundEl.textContent = round;
+      currentKey = pickRandomKey();
+      const col = mappingInputs[currentKey].value;
+      targetBox.style.background = col;
+      statusEl.textContent = 'رنگ نشان داده شد — انتخاب کنید';
+      nextBtn.disabled = true;
+    }
+
+    for(const k of Object.keys(btns)){
+      btns[k].addEventListener('click', ()=>{
+        if(!playing) return;
+        const chosenColor = mappingInputs[k].value;
+        const targetColor = mappingInputs[currentKey].value;
+        if(hexEqual(chosenColor,targetColor)){
+          score += 10;
+          statusEl.textContent = 'درست! +10';
+        } else {
+          score -= 5;
+          if(score<0) score=0;
+          statusEl.textContent = 'اشتباه! -5';
+        }
+        scoreEl.textContent = score;
+        nextBtn.disabled = false;
+      });
+    }
+
+    startBtn.addEventListener('click', ()=>{
+      score = 0; round = 0; scoreEl.textContent = score; roundEl.textContent = round;
+      playing = true; startBtn.disabled = true; nextBtn.disabled = true; statusEl.textContent = 'شروع شد';
+      nextRound();
+    });
+
+    nextBtn.addEventListener('click', ()=>{
+      nextRound();
+    });
+
+    document.addEventListener('keydown', (e)=>{
+      if(!playing) return;
+      const key = e.key.toLowerCase();
+      if(key==='q' || key==='1') btns.q.click();
+      if(key==='a' || key==='2') btns.a.click();
+      if(key==='z' || key==='3') btns.z.click();
+    });
+
+    targetBox.addEventListener('click', ()=>{
+      if(!playing) return;
+      statusEl.textContent = `جواب: "${btns[currentKey].textContent}"`;
+      nextBtn.disabled = false;
+    });
+  </script>
+</body>
+</html>
