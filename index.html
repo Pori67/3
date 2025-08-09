@@ -42,7 +42,6 @@
       </div>
       <div style="margin-left:auto;display:flex;gap:8px">
         <button id="startBtn">شروع بازی</button>
-        <button id="nextBtn" disabled>بعدی</button>
       </div>
     </div>
 
@@ -61,7 +60,7 @@
       <div class="small">وضعیت: <span id="status">آماده</span></div>
     </div>
 
-    <p class="footer">راهنما: با دکمه‌های بالا رنگ هر کلمه را تغییر دهید (اگر می‌خواهید). سپس <b>شروع بازی</b> را بزنید تا یک رنگ هدف نمایش داده شود — روی کلمه‌ای که به نظر شما با آن رنگ تطبیق دارد کلیک کنید. دکمه <b>بعدی</b> برای رفتن به رنگ بعدی است.</p>
+    <p class="footer">راهنما: با دکمه‌های بالا رنگ هر کلمه را تغییر دهید (اگر می‌خواهید). سپس <b>شروع بازی</b> را بزنید تا یک رنگ هدف نمایش داده شود — روی کلمه‌ای که به نظر شما با آن رنگ تطبیق دارد کلیک کنید.</p>
   </div>
 
   <script>
@@ -69,7 +68,6 @@
     const btns = { q: document.getElementById('btn-q'), a: document.getElementById('btn-a'), z: document.getElementById('btn-z') };
     const targetBox = document.getElementById('targetBox');
     const startBtn = document.getElementById('startBtn');
-    const nextBtn = document.getElementById('nextBtn');
     const scoreEl = document.getElementById('score');
     const roundEl = document.getElementById('round');
     const statusEl = document.getElementById('status');
@@ -103,7 +101,6 @@
       const col = mappingInputs[currentKey].value;
       targetBox.style.background = col;
       statusEl.textContent = 'رنگ نشان داده شد — انتخاب کنید';
-      nextBtn.disabled = true;
     }
 
     for(const k of Object.keys(btns)){
@@ -114,23 +111,20 @@
         if(hexEqual(chosenColor,targetColor)){
           score += 10;
           statusEl.textContent = 'درست! +10';
+          scoreEl.textContent = score;
+          setTimeout(nextRound, 500);
         } else {
           score -= 5;
           if(score<0) score=0;
           statusEl.textContent = 'اشتباه! -5';
+          scoreEl.textContent = score;
         }
-        scoreEl.textContent = score;
-        nextBtn.disabled = false;
       });
     }
 
     startBtn.addEventListener('click', ()=>{
       score = 0; round = 0; scoreEl.textContent = score; roundEl.textContent = round;
-      playing = true; startBtn.disabled = true; nextBtn.disabled = true; statusEl.textContent = 'شروع شد';
-      nextRound();
-    });
-
-    nextBtn.addEventListener('click', ()=>{
+      playing = true; startBtn.disabled = true; statusEl.textContent = 'شروع شد';
       nextRound();
     });
 
@@ -145,7 +139,6 @@
     targetBox.addEventListener('click', ()=>{
       if(!playing) return;
       statusEl.textContent = `جواب: "${btns[currentKey].textContent}"`;
-      nextBtn.disabled = false;
     });
   </script>
 </body>
